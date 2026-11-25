@@ -1,0 +1,17 @@
+<section class="staff-banner">
+  <span class="avatar avatar-lg" style="--h: {{ t.staff_id|hue }}">{{ t.staff_name|initials }}</span>
+  <div class="sb-main">
+    <span class="sb-label">You are giving feedback for</span>
+    <h1 class="sb-name">{{ t.staff_name }} <small>({{ t.staff_id }})</small></h1>
+    <div class="chips">
+      {% if t.course_code %}<span class="chip-soft">{{ icon('book', 'ic-sm') }} {{ t.course_code }}{% if t.course_name %} · {{ t.course_name }}{% endif %}</span>{% endif %}
+      <span class="chip-soft">{{ icon('flask', 'ic-sm') }} Room {{ t.lab }}</span>
+      <span class="chip-soft">{{ icon('layers', 'ic-sm') }} {{ t.cohort or 'All cohorts' }}</span>
+      {% if session.role == 'student' %}
+      <span class="chip-soft">{{ icon('user', 'ic-sm') }} Faculty: {{ t.faculty_name or '—' }}</span>
+      {% else %}
+      <span class="chip-soft">{{ icon('user', 'ic-sm') }} As: {{ t.designation }}</span>
+      {% endif %}
+    </div>
+  </div>
+</section>

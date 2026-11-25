@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}All Responses{% endblock %}
+{% block content %}
+<div class="page-title page-title-row">
+  <div><h1>All Responses <span class="count-badge">{{ total }}</span></h1><p>Search, review and delete submitted feedback</p></div>
+  <a class="btn btn-accent" href="{{ url_for('download_responses') }}">{{ icon('download', 'ic-sm') }} Download (.xlsx)</a>
+</div>
+
+<section class="card">
+  <div class="card-body">
+    <form method="get" action="{{ url_for('admin_responses') }}" class="search-row">
+      <div class="inp-icon grow">{{ icon('search') }}<input class="inp" name="q" value="{{ q }}" maxlength="100" placeholder="Search by ID, name, lab staff, course, room, cohort or ref no."></div>
+      <button class="btn btn-primary" type="submit">Search</button>
+      {% if q %}<a class="btn btn-ghost" href="{{ url_for('admin_responses') }}">Clear</a>{% endif %}
+    </form>
+    <p class="hint">{{ icon('info', 'ic-xs') }} Deleting a response lets that person submit feedback for that lab staff again. Every deletion is recorded in the activity log.</p>
+
+    {% if rows %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Ref No</th><th>Submitted</th><th>Type</th><th>Rater</th><th>Lab Staff</th><th>Course / Room / Cohort</th><th>Avg</th><th></th></tr></thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td data-l="Ref No" class="mono">{{ r.ref_no }}</td>
+            <td data-l="Submitted">{{ r.submitted_at }}</td>
+            <td data-l="Type"><span class="pill {{ 'pill-cyan' if r.rater_role == 'student' else 'pill-mag' }}">{{ 'Student' if r.rater_role == 'student' else (r.designation or 'Faculty') }}</span></td>
+            <td data-l="Rater">{{ r.rater_name }} <small class="muted">({{ r.rater_id }})</small></td>
+            <td data-l="Lab Staff">{{ r.staff_name }} <small class="muted">({{ r.staff_id }})</small></td>
+            <td data-l="Course / Room">{{ r.course_code or 'All courses' }}{% if r.course_name %} <small class="muted">{{ r.course_name }}</small>{% endif %} · {{ r.lab }} · {{ r.cohort or 'All' }}</td>
+            <td data-l="Avg"><span class="score">{{ icon('star', 'ic-xs') }} {{ r.average }}</span></td>
+            <td data-l="Action">
+              <form method="post" action="{{ url_for('admin_delete_response', rid=r.id) }}" class="inline js-confirm"
+                    data-msg="Delete response {{ r.ref_no }} by {{ r.rater_name }} ({{ r.rater_id }}) for {{ r.staff_name }}? This cannot be undone.">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="q" value="{{ q }}">
+                <button class="btn btn-danger-soft btn-small" type="submit">{{ icon('trash', 'ic-sm') }} Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="empty">{{ icon('search') }}<p>{{ 'No responses match your search.' if q else 'No feedback submitted yet.' }}</p></div>
+    {% endif %}
+  </div>
+</section>
+
+{% if total %}
+<section class="card danger-zone">
+  <div class="card-head"><span class="ch-ic ch-ic-danger">{{ icon('alert') }}</span>
+    <div><h2 class="ch-title">Delete ALL Responses</h2><p class="ch-sub">Clear test data before sharing the form with everyone</p></div></div>
+  <div class="card-body">
+    <p><b>Download the responses first</b> if you need them. This cannot be undone.</p>
+    <form method="post" action="{{ url_for('admin_delete_all') }}" class="js-confirm search-row"
+          data-msg="Delete ALL {{ total }} responses permanently?">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input class="inp inp-short" name="confirm_text" placeholder="Type DELETE" autocomplete="off" required>
+      <button class="btn btn-danger" type="submit">{{ icon('trash', 'ic-sm') }} Delete All Responses</button>
+      <a class="btn btn-ghost" href="{{ url_for('download_responses') }}">{{ icon('download', 'ic-sm') }} Download first</a>
+    </form>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4a1145">
+<meta name="format-detection" content="telephone=no, date=no, email=no, address=no">
+<meta name="apple-mobile-web-app-title" content="Lab Feedback">
+<meta name="mobile-web-app-capable" content="yes">
+<title>{% block title %}Feedback{% endblock %} · {{ portal.title }}</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<a class="skip" href="#main">Skip to main content</a>
+
+<div class="topstrip">
+  <div class="wrap ts-inner">
+    <span class="ts-left">{{ icon('shield', 'ic-sm') }} {{ portal.org }}</span>
+    <span class="ts-right">
+      <span>{{ icon('calendar', 'ic-sm') }} {{ now_str }}</span>
+      {% if session.uid or session.admin %}
+      <span class="ts-timer">{{ icon('clock', 'ic-sm') }} Session <b id="session-timer" data-seconds="{{ session_seconds }}">--:--</b></span>
+      {% endif %}
+    </span>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap mh-inner">
+    <a class="brand" href="{{ url_for('index') }}">
+      <img class="brand-logo" src="{{ url_for('static', filename='upes-logo.png') }}" alt="UPES" width="288" height="68">
+    </a>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <div class="mh-text">
+      <div class="mh-title">{{ portal.title }}</div>
+      <div class="mh-sub">{{ portal.subtitle }}</div>
+    </div>
+    {% if session.uid %}
+    <div class="user-chip">
+      <span class="avatar" style="--h: {{ session.uid|hue }}">{{ session.name|initials }}</span>
+      <span class="uc-text">
+        <span class="uc-name">{{ session.name }}</span>
+        <span class="uc-id">{{ 'Student' if session.role == 'student' else 'Faculty' }} · {{ session.uid }}</span>
+      </span>
+      <form method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="icon-btn" type="submit" title="Logout" aria-label="Logout">{{ icon('logout') }}</button>
+      </form>
+    </div>
+    {% elif session.admin %}
+    <div class="user-chip">
+      <span class="avatar avatar-admin">{{ icon('key', 'ic-sm') }}</span>
+      <span class="uc-text">
+        <span class="uc-name">Administrator</span>
+        <span class="uc-id">{{ session.admin }}</span>
+      </span>
+      <form method="post" action="{{ url_for('admin_logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="icon-btn" type="submit" title="Logout" aria-label="Logout">{{ icon('logout') }}</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  <div class="tri-stripe" aria-hidden="true"></div>
+</header>
+
+<nav class="mainnav" aria-label="Main">
+  <div class="wrap nav-inner">
+    {% if session.admin %}
+      <a href="{{ url_for('admin_panel') }}" class="{{ 'on' if request.endpoint == 'admin_panel' }}">{{ icon('chart', 'ic-sm') }} Dashboard</a>
+      <a href="{{ url_for('admin_responses') }}" class="{{ 'on' if request.endpoint == 'admin_responses' }}">{{ icon('list', 'ic-sm') }} All Responses</a>
+    {% else %}
+      <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint in ('login', 'dashboard') }}">{{ icon('home', 'ic-sm') }} Home</a>
+      {% if session.uid %}<a href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint in ('feedback_form', 'feedback_preview', 'feedback_summary') }}">{{ icon('users', 'ic-sm') }} My Lab Staff</a>{% endif %}
+    {% endif %}
+    <a href="{{ url_for('instructions') }}" class="{{ 'on' if request.endpoint == 'instructions' }}">{{ icon('book', 'ic-sm') }} Instructions</a>
+    <a href="{{ url_for('instructions') }}#scale">{{ icon('star', 'ic-sm') }} Rating Scale</a>
+  </div>
+</nav>
+
+<div class="notice" role="note">
+  <div class="wrap notice-inner">
+    <span class="notice-tag">{{ icon('alert', 'ic-sm') }} Important</span>
+    <div class="notice-track"><span class="notice-text">
+      Feedback can be submitted only ONCE for each lab staff member &nbsp;•&nbsp; Your responses are confidential and used only for quality improvement &nbsp;•&nbsp; Use only your own Student ID / Faculty ID &nbsp;•&nbsp; Session expires after {{ session_seconds // 60 }} minutes
+    </span></div>
+  </div>
+</div>
+
+<main id="main" class="wrap main">
+  {% if step %}
+  <ol class="stepper" aria-label="Progress">
+    {% for s in steps %}
+    <li class="{{ 'done' if loop.index < step else ('current' if loop.index == step else '') }}" {% if loop.index == step %}aria-current="step"{% endif %}>
+      <span class="st-num">{% if loop.index < step %}{{ icon('check', 'ic-xs') }}{% else %}{{ loop.index }}{% endif %}</span>
+      <span class="st-lbl">{{ s }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+    <div class="flashes">
+      {% for cat, m in msgs %}
+      <div class="flash flash-{{ cat }}" role="alert">
+        {{ icon('check-circle' if cat == 'success' else ('alert' if cat == 'error' else 'info')) }}<span>{{ m }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="tri-stripe" aria-hidden="true"></div>
+  <div class="wrap foot-inner">
+    <div class="foot-brand">
+      <span class="foot-title">{{ portal.title }}</span>
+      <span>© 2026 {{ portal.org }}</span>
+    </div>
+    <div class="foot-links">
+      <a href="{{ url_for('instructions') }}">Instructions</a>
+      <a href="{{ url_for('admin_login') }}">Administrator</a>
+      <span>Best viewed in Chrome, Edge or Firefox</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Live data and secrets - never commit
+instance/
+data received/
+*.db
+*.key
+
+# Excel files with real data (the template is allowed below)
+*.xlsx
+!Lab_Feedback_Demo_Data.xlsx
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Editor / OS
+.vscode/
+.claude/
+Thumbs.db
+desktop.ini
+
+# IIS logs
+logs/

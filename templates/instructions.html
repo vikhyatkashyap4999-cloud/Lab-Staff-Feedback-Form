@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Instructions{% endblock %}
+{% block content %}
+<div class="page-title">
+  <h1>Instructions</h1>
+  <p>How to fill the Lab Staff Quality Feedback Form</p>
+</div>
+
+<ol class="how-steps">
+  <li><span class="hs-ic">{{ icon('id') }}</span><b>Login</b><p>Enter your Student ID or Faculty ID and the security code.</p></li>
+  <li><span class="hs-ic">{{ icon('users') }}</span><b>Pick lab staff</b><p>You will see every lab staff member assigned to you. Click <b>Give Feedback</b> on each card.</p></li>
+  <li><span class="hs-ic">{{ icon('star') }}</span><b>Rate 1 to 5</b><p>Rate every criterion using the guide below and add optional remarks.</p></li>
+  <li><span class="hs-ic">{{ icon('check-circle') }}</span><b>Preview &amp; submit</b><p>Check your answers, tick the declaration and click <b>Final Submit</b>.</p></li>
+</ol>
+
+<div class="flash flash-info">{{ icon('info') }}<span>Feedback is accepted <b>only once</b> per lab staff member and cannot be edited after submission.</span></div>
+
+<section class="card" id="scale">
+  <div class="card-head">
+    <span class="ch-ic">{{ icon('star') }}</span>
+    <div><h2 class="ch-title">Rating Scale Reference Guide</h2><p class="ch-sub">Use this guide to keep evaluations consistent and fair</p></div>
+  </div>
+  <div class="card-body">{% include "_scale.html" %}</div>
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <div class="card-head"><span class="ch-ic">{{ icon('user') }}</span><div><h2 class="ch-title">Student Questionnaire</h2><p class="ch-sub">{{ student_q|length }} criteria</p></div></div>
+    <div class="card-body"><ol class="num-list">{% for q in student_q %}<li>{{ q }}</li>{% endfor %}</ol></div>
+  </section>
+  <section class="card">
+    <div class="card-head"><span class="ch-ic">{{ icon('users') }}</span><div><h2 class="ch-title">Faculty / Lab Head / PL / Cluster Head</h2><p class="ch-sub">{{ faculty_q|length }} criteria</p></div></div>
+    <div class="card-body"><ol class="num-list">{% for q in faculty_q %}<li>{{ q }}</li>{% endfor %}</ol></div>
+  </section>
+</div>
+{% endblock %}

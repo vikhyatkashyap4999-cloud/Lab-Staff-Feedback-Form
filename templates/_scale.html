@@ -1,0 +1,9 @@
+<div class="scale-cards">
+  {% for v, label, desc in rating_scale %}
+  <div class="scale-card r{{ v }}">
+    <div class="scale-num">{{ v }}</div>
+    <div class="scale-lbl">{{ label }}</div>
+    <p>{{ desc }}</p>
+  </div>
+  {% endfor %}
+</div>

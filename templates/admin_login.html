@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Admin Login{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <div class="card-head">
+    <span class="ch-ic">{{ icon('key') }}</span>
+    <div><h2 class="ch-title">Administrator Login</h2><p class="ch-sub">Authorised personnel only</p></div>
+  </div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('admin_login') }}" autocomplete="off" class="js-validate" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field">
+        <label for="username">Username <span class="req">*</span></label>
+        <div class="inp-icon">{{ icon('user') }}<input class="inp" id="username" name="username" required maxlength="50" autocomplete="username" autofocus></div>
+      </div>
+      <div class="field">
+        <label for="password">Password <span class="req">*</span></label>
+        <div class="inp-icon pw-wrap">{{ icon('lock') }}<input class="inp" id="password" type="password" name="password" required autocomplete="current-password">
+          <button type="button" class="pw-toggle" data-target="password">Show</button></div>
+      </div>
+      <div class="field">
+        <label for="captcha">Security Code <span class="req">*</span></label>
+        <div class="captcha-row">
+          <div class="captcha">{% for ch, cls in captcha %}<span class="{{ cls }}">{{ ch }}</span>{% endfor %}</div>
+          <input class="inp" id="captcha" name="captcha" inputmode="numeric" maxlength="3" required placeholder="Answer">
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary btn-block" type="submit">Login {{ icon('arrow-right', 'ic-sm') }}</button></div>
+    </form>
+  </div>
+</section>
+{% endblock %}

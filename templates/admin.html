@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+{% macro pct(a, b) %}{{ ((100 * a / b)|round|int) if b else 0 }}{% endmacro %}
+<div class="page-title page-title-row">
+  <div><h1>Admin Dashboard</h1><p>Upload master data, track progress and download responses</p></div>
+  <a class="btn btn-accent" href="{{ url_for('download_responses') }}">{{ icon('download', 'ic-sm') }} Download Responses</a>
+</div>
+
+<div class="stats">
+  <div class="stat"><span class="stat-ic c-cyan">{{ icon('user') }}</span><div><span class="stat-n">{{ stats.students }}</span><span class="stat-l">Students</span></div></div>
+  <div class="stat"><span class="stat-ic c-mag">{{ icon('users') }}</span><div><span class="stat-n">{{ stats.faculty }}</span><span class="stat-l">Faculty / Reviewers</span></div></div>
+  <div class="stat"><span class="stat-ic c-yel">{{ icon('flask') }}</span><div><span class="stat-n">{{ stats.staff }}</span><span class="stat-l">Lab Staff</span></div></div>
+  <div class="stat stat-wide">
+    <div class="stat-row"><span class="stat-l">Student feedback</span><b>{{ stats.got_s }} / {{ stats.exp_s }}</b></div>
+    <span class="bar"><span style="width: {{ pct(stats.got_s, stats.exp_s) }}%"></span></span>
+    <div class="stat-row"><span class="stat-l">Faculty feedback</span><b>{{ stats.got_f }} / {{ stats.exp_f }}</b></div>
+    <span class="bar bar-mag"><span style="width: {{ pct(stats.got_f, stats.exp_f) }}%"></span></span>
+  </div>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <div class="card-head"><span class="ch-ic">{{ icon('upload') }}</span>
+      <div><h2 class="ch-title">Upload Master Data</h2><p class="ch-sub">Excel file (.xlsx) in the template format</p></div></div>
+    <div class="card-body">
+      <form method="post" action="{{ url_for('admin_upload') }}" enctype="multipart/form-data" class="js-once js-upload">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="dropzone">
+          <input type="file" id="datafile" name="datafile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+          <span class="dz-ic">{{ icon('file') }}</span>
+          <span class="dz-text"><b id="dz-name">Choose Excel file</b><small>Click to browse · max 10 MB</small></span>
+        </label>
+        <ul class="hint-list">
+          <li><b>Assignments</b> sheet is required (with Lab Room No., Course Code and Course Name); <b>Reviewers</b> (Lab Head / PL / Cluster Head) is optional.</li>
+          <li>Upload <b>replaces</b> the assignment lists. Submitted responses are never deleted.</li>
+          <li>Everyone in the file can log in immediately with their ID.</li>
+        </ul>
+        <div class="btn-row">
+          <button class="btn btn-primary" type="submit">{{ icon('upload', 'ic-sm') }} Upload &amp; Import</button>
+          <a class="btn btn-ghost" href="{{ url_for('download_template') }}">{{ icon('download', 'ic-sm') }} Blank Template</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><span class="ch-ic">{{ icon('download') }}</span>
+      <div><h2 class="ch-title">Downloads &amp; Tools</h2><p class="ch-sub">Everything you need for reporting</p></div></div>
+    <div class="card-body">
+      <a class="tool" href="{{ url_for('download_responses') }}">
+        <span class="tool-ic c-cyan">{{ icon('chart') }}</span>
+        <span><b>All Responses (.xlsx)</b><small>Student Responses · Faculty Responses · Staff Summary · Pending</small></span>
+        {{ icon('arrow-right', 'ic-sm tool-go') }}
+      </a>
+      <a class="tool" href="{{ url_for('admin_responses') }}">
+        <span class="tool-ic c-mag">{{ icon('list') }}</span>
+        <span><b>View / Delete Responses</b><small>Search any response, delete test entries</small></span>
+        {{ icon('arrow-right', 'ic-sm tool-go') }}
+      </a>
+      <a class="tool" href="{{ url_for('download_template') }}">
+        <span class="tool-ic c-yel">{{ icon('file') }}</span>
+        <span><b>Upload Template (.xlsx)</b><small>Blank Assignments + Reviewers sheets</small></span>
+        {{ icon('arrow-right', 'ic-sm tool-go') }}
+      </a>
+    </div>
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-head"><span class="ch-ic">{{ icon('flask') }}</span>
+    <div><h2 class="ch-title">Lab Staff Summary</h2><p class="ch-sub">Responses received and average rating (out of 5)</p></div></div>
+  <div class="card-body">
+    {% if staff %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Lab Staff</th><th>Lab Rooms / Courses</th><th>Student Feedback</th><th>Student Avg</th><th>Faculty Feedback</th><th>Faculty Avg</th></tr></thead>
+        <tbody>
+          {% for s in staff %}
+          <tr>
+            <td data-l="Lab Staff"><span class="cell-person"><span class="avatar avatar-sm" style="--h: {{ s.staff_id|hue }}">{{ s.name|initials }}</span><span><b>{{ s.name }}</b><small>{{ s.staff_id }}</small></span></span></td>
+            <td data-l="Rooms / Courses">{{ s.labs }}{% if s.courses %}<small class="muted cell-sub">{{ s.courses }}</small>{% endif %}</td>
+            <td data-l="Student Feedback"><span class="mini">{{ s.got_s }} / {{ s.exp_s }}<span class="bar"><span style="width: {{ pct(s.got_s, s.exp_s) }}%"></span></span></span></td>
+            <td data-l="Student Avg">{% if s.avg_s is not none %}<span class="score">{{ icon('star', 'ic-xs') }} {{ s.avg_s }}</span>{% else %}—{% endif %}</td>
+            <td data-l="Faculty Feedback"><span class="mini">{{ s.got_f }} / {{ s.exp_f }}<span class="bar bar-mag"><span style="width: {{ pct(s.got_f, s.exp_f) }}%"></span></span></span></td>
+            <td data-l="Faculty Avg">{% if s.avg_f is not none %}<span class="score">{{ icon('star', 'ic-xs') }} {{ s.avg_f }}</span>{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<div class="empty">{{ icon('upload') }}<p>No data uploaded yet. Upload the master Excel file to begin.</p></div>{% endif %}
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head"><span class="ch-ic">{{ icon('clock') }}</span>
+    <div><h2 class="ch-title">Recent Submissions</h2><p class="ch-sub">Latest 10 responses</p></div>
+    <a class="btn btn-ghost btn-small ch-action" href="{{ url_for('admin_responses') }}">View All / Delete {{ icon('arrow-right', 'ic-sm') }}</a></div>
+  <div class="card-body">
+    {% if recent %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Ref No</th><th>Submitted</th><th>Type</th><th>Rater</th><th>Lab Staff</th><th>Course / Room / Cohort</th><th>Avg</th></tr></thead>
+        <tbody>
+          {% for r in recent %}
+          <tr><td data-l="Ref No" class="mono">{{ r.ref_no }}</td><td data-l="Submitted">{{ r.submitted_at }}</td>
+              <td data-l="Type"><span class="pill {{ 'pill-cyan' if r.rater_role == 'student' else 'pill-mag' }}">{{ 'Student' if r.rater_role == 'student' else 'Faculty' }}</span></td>
+              <td data-l="Rater">{{ r.rater_name }} <small class="muted">({{ r.rater_id }})</small></td><td data-l="Lab Staff">{{ r.staff_name }}</td>
+              <td data-l="Course / Room">{{ r.course_code or 'All courses' }} · {{ r.lab }} · {{ r.cohort or 'All' }}</td><td data-l="Avg"><span class="score">{{ icon('star', 'ic-xs') }} {{ r.average }}</span></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<div class="empty">{{ icon('clock') }}<p>No feedback submitted yet.</p></div>{% endif %}
+  </div>
+</section>
+
+<details class="card guide">
+  <summary class="guide-sum">{{ icon('lock', 'ic-sm') }} Change Admin Password</summary>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('admin_password') }}" autocomplete="off" class="pw-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field"><label>Current Password <span class="req">*</span></label><input class="inp" type="password" name="current" required autocomplete="current-password"></div>
+      <div class="field"><label>New Password <span class="req">*</span></label><input class="inp" type="password" name="new" required minlength="10" autocomplete="new-password"><div class="hint">At least 10 characters, with letters and numbers.</div></div>
+      <div class="field"><label>Confirm New Password <span class="req">*</span></label><input class="inp" type="password" name="confirm" required minlength="10" autocomplete="new-password"></div>
+      <div class="btn-row"><button class="btn btn-primary" type="submit">Change Password</button></div>
+    </form>
+  </div>
+</details>
+{% endblock %}

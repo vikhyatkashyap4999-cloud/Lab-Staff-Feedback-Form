@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}My Lab Staff{% endblock %}
+{% block content %}
+{% set total = targets|length %}
+{% set pct = ((100 * done / total)|round|int) if total else 0 %}
+<section class="welcome">
+  <div class="welcome-main">
+    <span class="avatar avatar-lg" style="--h: {{ session.uid|hue }}">{{ session.name|initials }}</span>
+    <div>
+      <p class="welcome-hi">Welcome,</p>
+      <h1 class="welcome-name">{{ session.name }}</h1>
+      <div class="chips">
+        <span class="chip-soft">{{ icon('id', 'ic-sm') }} {{ session.uid }}</span>
+        <span class="chip-soft">{{ icon('user', 'ic-sm') }} {{ 'Student' if session.role == 'student' else 'Faculty / Lab Head' }}</span>
+        <span class="chip-soft">{{ icon('clock', 'ic-sm') }} Logged in {{ session.login_at }}</span>
+      </div>
+    </div>
+  </div>
+  {% if total %}
+  <div class="welcome-progress">
+    <div class="ring" style="--p: {{ pct }}"><span><b>{{ done }}</b>/{{ total }}</span></div>
+    <div>
+      <div class="wp-title">{% if done == total %}All done!{% else %}{{ done }} of {{ total }} submitted{% endif %}</div>
+      <div class="wp-sub">{% if done == total %}Thank you for your feedback{% else %}{{ total - done }} still pending{% endif %}</div>
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+<div class="section-head">
+  <h2>{{ icon('users') }} Lab Staff Assigned to You</h2>
+  <span class="sh-note">Click <b>Give Feedback</b> on each card</span>
+</div>
+
+{% if targets %}
+<div class="staff-grid">
+  {% for t in targets %}
+  <article class="staff-card {{ 'is-done' if t.ref_no else 'is-pending' }}">
+    <div class="sc-top">
+      <span class="avatar" style="--h: {{ t.staff_id|hue }}">{{ t.staff_name|initials }}</span>
+      <div class="sc-who">
+        <h3>{{ t.staff_name }}</h3>
+        <span class="sc-id">Lab Staff ID · {{ t.staff_id }}</span>
+      </div>
+      {% if t.ref_no %}<span class="pill pill-ok">{{ icon('check', 'ic-xs') }} Submitted</span>
+      {% else %}<span class="pill pill-pend">{{ icon('clock', 'ic-xs') }} Pending</span>{% endif %}
+    </div>
+    <dl class="sc-meta">
+      {% if t.course_code %}<div><dt>{{ icon('book', 'ic-sm') }} Course</dt><dd>{{ t.course_code }}{% if t.course_name %}<small class="dd-sub">{{ t.course_name }}</small>{% endif %}</dd></div>{% endif %}
+      <div><dt>{{ icon('flask', 'ic-sm') }} Lab Room No.</dt><dd>{{ t.lab }}</dd></div>
+      <div><dt>{{ icon('layers', 'ic-sm') }} Cohort</dt><dd>{{ t.cohort or 'All cohorts' }}</dd></div>
+      {% if session.role == 'student' %}
+      <div><dt>{{ icon('user', 'ic-sm') }} Faculty</dt><dd>{{ t.faculty_name or '—' }}</dd></div>
+      {% else %}
+      <div><dt>{{ icon('user', 'ic-sm') }} Your role</dt><dd>{{ t.designation }}</dd></div>
+      {% endif %}
+    </dl>
+    <div class="sc-foot">
+      {% if t.ref_no %}
+        <span class="sc-ref">Submitted {{ t.submitted_at[:10] }}</span>
+        <a class="btn btn-ghost btn-small" href="{{ url_for('feedback_summary', ref_no=t.ref_no) }}">{{ icon('list', 'ic-sm') }} View Summary</a>
+      {% else %}
+        <span class="sc-ref">{{ 6 if session.role == 'student' else 7 }} questions · ~2 min</span>
+        <a class="btn btn-primary btn-small" href="{{ url_for('feedback_form', key=t.key) }}">Give Feedback {{ icon('arrow-right', 'ic-sm') }}</a>
+      {% endif %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+{% if done == total %}
+<div class="done-banner">
+  <span class="db-ic">{{ icon('check-circle') }}</span>
+  <div><b>Thank you!</b> You have submitted feedback for all your lab staff. You may now logout.</div>
+</div>
+{% endif %}
+{% else %}
+<div class="empty">{{ icon('info') }}<p>No lab staff are currently assigned to your ID. If you think this is a mistake, please contact the Laboratory Quality Cell.</p></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Preview{% endblock %}
+{% block content %}
+<div class="flash flash-info">{{ icon('info') }}<span>Please check your responses carefully. After <b>Final Submit</b> no changes are possible.</span></div>
+{% include "_staff_details.html" %}
+
+<div class="preview-grid">
+  <section class="card">
+    <div class="card-head">
+      <span class="ch-ic">{{ icon('list') }}</span>
+      <div><h2 class="ch-title">Your Ratings</h2><p class="ch-sub">Review before submitting</p></div>
+      <a class="btn btn-ghost btn-small ch-action" href="{{ url_for('feedback_form', key=t.key) }}">{{ icon('edit', 'ic-sm') }} Edit</a>
+    </div>
+    <div class="card-body">
+      <ul class="rate-list">
+        {% for n, q, a, label in rows %}
+        <li>
+          <span class="q-no">{{ n }}</span>
+          <span class="rl-q">{{ q }}</span>
+          <span class="rl-bar r{{ a }}"><span style="width: {{ a * 20 }}%"></span></span>
+          <span class="tag r{{ a }}">{{ a }} · {{ label }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="remarks">
+        <span class="rm-label">{{ icon('message', 'ic-sm') }} Remarks</span>
+        <p class="pre">{{ comments or 'No remarks added.' }}</p>
+      </div>
+    </div>
+  </section>
+
+  <aside class="card score-card">
+    <div class="score-ring" style="--p: {{ (avg * 20)|round|int }}"><span><b>{{ avg }}</b>out of 5</span></div>
+    <div class="score-lbl">Average Rating</div>
+  </aside>
+</div>
+
+<form method="post" action="{{ url_for('feedback_submit', key=t.key) }}" class="js-once js-final">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <section class="card declare-card">
+    <label class="declare">
+      <input type="checkbox" name="declaration" value="yes" required>
+      <span class="check-box" aria-hidden="true">{{ icon('check', 'ic-sm') }}</span>
+      <span><b>Declaration.</b> I hereby declare that the feedback given above is honest, unbiased and based on my own experience in the laboratory.
+      I understand that once submitted, this feedback <b>cannot be modified or submitted again</b>.</span>
+    </label>
+    <p class="declare-err" role="alert" hidden>{{ icon('alert', 'ic-sm') }} Please tick the declaration to submit.</p>
+  </section>
+  <div class="btn-row btn-row-end">
+    <a class="btn btn-ghost" href="{{ url_for('feedback_form', key=t.key) }}">{{ icon('arrow-left', 'ic-sm') }} Edit Responses</a>
+    <button class="btn btn-accent" type="submit">{{ icon('check', 'ic-sm') }} Final Submit</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Give Feedback{% endblock %}
+{% block body_class %}has-sticky{% endblock %}
+{% block content %}
+{% include "_staff_details.html" %}
+
+<details class="card guide">
+  <summary class="guide-sum">{{ icon('star', 'ic-sm') }} Rating Scale Reference Guide <span class="sum-hint">tap to view</span></summary>
+  <div class="card-body">{% include "_scale.html" %}</div>
+</details>
+
+<form method="post" action="{{ url_for('feedback_form', key=t.key) }}" id="fbform" class="js-validate js-once" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <section class="card">
+    <div class="card-head">
+      <span class="ch-ic">{{ icon('edit') }}</span>
+      <div>
+        <h2 class="ch-title">{{ 'Student Feedback' if session.role == 'student' else 'Faculty / Lab Head Feedback' }}</h2>
+        <p class="ch-sub">Select one rating per criterion · All criteria are mandatory <span class="req">*</span></p>
+      </div>
+    </div>
+    <div class="card-body q-list">
+      <div class="scale-key" aria-hidden="true">
+        {% for v, label, _ in rating_scale %}<span class="sk r{{ v }}"><b>{{ v }}</b> {{ label }}</span>{% endfor %}
+      </div>
+      {% for q in questions %}
+      {% set qi = loop.index %}
+      <div class="q-item {{ 'miss' if qi in missing }}" data-q="q{{ qi }}" role="radiogroup" aria-labelledby="ql{{ qi }}" aria-required="true">
+        <div class="q-text" id="ql{{ qi }}"><span class="q-no">{{ qi }}</span><span>{{ q }}&nbsp;<span class="req">*</span></span></div>
+        <div class="opts">
+          {% for v, label, _ in rating_scale %}
+          <label class="opt r{{ v }}">
+            <input type="radio" name="q{{ qi }}" value="{{ v }}" {{ 'checked' if answers[qi-1] == v }} required>
+            <span class="opt-box"><b>{{ v }}</b><small>{{ label }}</small></span>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="q-picked" aria-live="polite">{% if answers[qi-1] %}Selected: {{ answers[qi-1] }} – {{ rating_scale[answers[qi-1]-1][1] }}{% endif %}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <span class="ch-ic">{{ icon('message') }}</span>
+      <div>
+        <h2 class="ch-title">Additional Remarks <span class="opt-tag">Optional</span></h2>
+        <p class="ch-sub">Suggestions for improvement or words of appreciation</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <textarea class="inp" name="comments" id="comments" rows="4" maxlength="1000" placeholder="Write your remarks here (max 1000 characters)">{{ comments }}</textarea>
+      <div class="hint right"><span id="cc">{{ comments|length }}</span> / 1000</div>
+    </div>
+  </section>
+
+  <div class="sticky-bar">
+    <div class="wrap sb-inner">
+      <a class="btn btn-ghost" href="{{ url_for('dashboard') }}">{{ icon('arrow-left', 'ic-sm') }} <span class="hide-sm">Back</span></a>
+      <div class="sb-progress">
+        <span id="answered" data-total="{{ questions|length }}">0 of {{ questions|length }} answered</span>
+        <span class="bar"><span id="answered-bar"></span></span>
+      </div>
+      <button class="btn btn-ghost js-clear hide-sm" type="button">Clear</button>
+      <button class="btn btn-primary" type="submit">Save &amp; Preview {{ icon('arrow-right', 'ic-sm') }}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

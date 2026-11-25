@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Feedback Submitted{% endblock %}
+{% block content %}
+<section class="thanks">
+  <span class="thanks-tick">{{ icon('check') }}</span>
+  <div>
+    <h1>Thank you, {{ session.name }}!</h1>
+    <p>Your feedback for <b>{{ r.staff_name }}</b> has been submitted.</p>
+  </div>
+</section>
+
+<div class="preview-grid">
+  <section class="card">
+    <div class="card-head">
+      <span class="ch-ic">{{ icon('list') }}</span>
+      <div>
+        <h2 class="ch-title">Feedback Summary</h2>
+        <p class="ch-sub">{{ r.staff_name }}{% if r.course_code %} · {{ r.course_code }}{% if r.course_name %} {{ r.course_name }}{% endif %}{% endif %} · Room {{ r.lab }} · {{ r.cohort or 'All cohorts' }}</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <ul class="rate-list">
+        {% for n, q, a, label in rows %}
+        <li>
+          <span class="q-no">{{ n }}</span>
+          <span class="rl-q">{{ q }}</span>
+          <span class="rl-bar r{{ a }}"><span style="width: {{ a * 20 }}%"></span></span>
+          <span class="tag r{{ a }}">{{ a }} · {{ label }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if r.comments %}
+      <div class="remarks">
+        <span class="rm-label">{{ icon('message', 'ic-sm') }} Remarks</span>
+        <p class="pre">{{ r.comments }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <aside class="card score-card">
+    <div class="score-ring" style="--p: {{ (r.average * 20)|round|int }}"><span><b>{{ r.average }}</b>out of 5</span></div>
+    <div class="score-lbl">Average Rating</div>
+  </aside>
+</div>
+
+{% if pending %}
+<section class="next-card">
+  <div>
+    <b>{{ pending|length }} more lab staff {{ 'is' if pending|length == 1 else 'are' }} waiting for your feedback.</b>
+    <span>Next: {{ pending[0].staff_name }}{% if pending[0].course_code %} · {{ pending[0].course_code }}{% endif %} · Room {{ pending[0].lab }}</span>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('feedback_form', key=pending[0].key) }}">Give Feedback {{ icon('arrow-right', 'ic-sm') }}</a>
+</section>
+{% else %}
+<section class="next-card next-done">
+  <div>
+    <b>You have completed feedback for all your lab staff.</b>
+    <span>You can now logout.</span>
+  </div>
+  <form method="post" action="{{ url_for('logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-primary" type="submit">{{ icon('logout', 'ic-sm') }} Logout</button>
+  </form>
+</section>
+{% endif %}
+
+<div class="btn-row btn-row-end">
+  <a class="btn btn-ghost" href="{{ url_for('dashboard') }}">{{ icon('arrow-left', 'ic-sm') }} Back to My Lab Staff</a>
+</div>
+{% endblock %}

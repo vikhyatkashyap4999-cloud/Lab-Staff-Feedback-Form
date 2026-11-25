@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="login-layout">
+  <section class="hero">
+    <div class="hero-badge">{{ icon('flask', 'ic-sm') }} Session Jul – Dec 2026</div>
+    <h1 class="hero-title">Help us build better labs.</h1>
+    <p class="hero-lead">Rate the lab staff who support your practical sessions. It takes about two minutes per staff member, and your feedback goes straight to the Laboratory Quality Cell.</p>
+
+    <ol class="hero-steps">
+      <li><span>1</span>Login</li>
+      <li><span>2</span>Pick lab staff</li>
+      <li><span>3</span>Rate 1–5</li>
+      <li><span>4</span>Preview &amp; submit</li>
+    </ol>
+  </section>
+
+  <section class="card login-card">
+    <div class="card-head">
+      <span class="ch-ic">{{ icon('user') }}</span>
+      <div>
+        <h2 class="ch-title">Candidate Login</h2>
+        <p class="ch-sub">Fields marked <span class="req">*</span> are mandatory</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" action="{{ url_for('login') }}" autocomplete="off" novalidate class="js-validate">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="field">
+          <label for="user_id">Student ID / Faculty ID <span class="req">*</span></label>
+          <div class="inp-icon">
+            {{ icon('id') }}
+            <input class="inp" id="user_id" name="user_id" value="{{ form.user_id }}" maxlength="50" required
+                   placeholder="e.g. 1001" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"
+                   enterkeyhint="next" {{ 'readonly' if form.ask_role }} {{ 'data-autofocus' if not form.ask_role }}>
+          </div>
+        </div>
+
+        {% if form.ask_role %}
+        <div class="field">
+          <span class="field-label">Login As <span class="req">*</span></span>
+          <div class="seg">
+            <label><input type="radio" name="role" value="student" required><span>{{ icon('user', 'ic-sm') }} Student</span></label>
+            <label><input type="radio" name="role" value="faculty"><span>{{ icon('users', 'ic-sm') }} Faculty / Lab Head</span></label>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="field">
+          <label for="captcha">Security Code <span class="req">*</span></label>
+          <div class="captcha-row">
+            <div class="captcha" aria-label="Solve the sum">{% for ch, cls in captcha %}<span class="{{ cls }}">{{ ch }}</span>{% endfor %}</div>
+            <input class="inp" id="captcha" name="captcha" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" required
+                   placeholder="Answer" autocomplete="off" enterkeyhint="go" {{ 'data-autofocus' if form.ask_role }}>
+          </div>
+          <div class="hint">Enter the result of the sum shown.</div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary btn-block" type="submit">Login {{ icon('arrow-right', 'ic-sm') }}</button>
+        </div>
+      </form>
+
+      <div class="login-note">
+        {{ icon('info', 'ic-sm') }}
+        <span>Always <b>logout</b> after submitting, especially on shared devices. <a href="{{ url_for('instructions') }}">Read the instructions</a></span>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
